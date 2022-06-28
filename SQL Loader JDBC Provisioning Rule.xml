@@ -1,0 +1,80 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!DOCTYPE Rule PUBLIC "sailpoint.dtd" "sailpoint.dtd">
+<Rule  language="beanshell"  name="SQL Loader JDBC Provisioning Rule" type="JDBCProvision">
+  <Description>This rule is used by the JDBC connector to do provisioning of the data .</Description>
+  <Signature returnType="ProvisioningResult">
+    <Inputs>
+      <Argument name="log">
+        <Description>
+          The log object associated with the SailPointContext.
+        </Description>
+      </Argument>
+      <Argument name="context">
+        <Description>
+          A sailpoint.api.SailPointContext object that can be used to query the database if necessary.
+        </Description>
+      </Argument>
+      <Argument name="application">
+        <Description>
+          The application whose data file is being processed.
+        </Description>
+      </Argument>
+      <Argument name="schema">
+        <Description>
+          The Schema currently in use.
+        </Description>
+      </Argument>
+      <Argument name="connection">
+        <Description>
+          A connection object to connect to database.
+        </Description>
+      </Argument>
+      <Argument name="plan">
+        <Description>
+          The ProvisioningPlan created against the JDBC application.
+        </Description>
+      </Argument>
+    </Inputs>
+    <Returns>
+      <Argument name="result">
+        <Description>
+          A Provisioning Result object is desirable to return the status.IT can be a new object or part of  Provisioning Plan
+        </Description>
+      </Argument>
+    </Returns>
+  </Signature>
+  <Source>import java.util.*;
+  import java.sql.SQLException;
+  import sailpoint.object.ProvisioningResult;
+  import sailpoint.object.ProvisioningPlan.AccountRequest;
+
+  List  accounts = plan.getAccountRequests();
+  System.out.println("string is " + plan.toXml());
+  System.out.println("before for loop");
+  ProvisioningResult provResult = new ProvisioningResult();
+  if(accounts.size() > 0) {
+    for(int i = 0; i &lt; accounts.size(); i++) {
+      AccountRequest temp = accounts.get(i);
+      System.out.println(temp.getApplication());
+      AccountRequest.Operation op = temp.getOperation();            
+      String accountId = temp.getNativeIdentity();
+      System.out.println("identity  " + accountId);
+      System.out.println("operation " + op);
+      try {
+        stmt = connection.createStatement(); 
+        // creating Query String   
+        String valueOfEntt = "Siddharth";
+        String query = "update sql_loader set column2='" + valueOfEntt + "' where column1 = '" + accountId + "'";  
+        System.out.println("query is  " + query);               
+        stmt.executeUpdate(query);
+      }
+      catch(SQLException e) {     
+        provResult.setStatus(ProvisioningResult.STATUS_FAILED);
+        provResult.addError(e);
+      }
+    }
+  }
+
+  System.out.println("after the for loop");
+  return provResult ;</Source>
+</Rule>
